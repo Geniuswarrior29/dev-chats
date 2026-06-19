@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevChat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #00a884;
+            --teal-dark: #06614e;
+            --teal-deep: #07473a;
+            --bg-soft: #f5f7f6;
+            --bubble-sent: #d9fdd3;
+            --bubble-received: #ffffff;
+            --ink: #233138;
+            --muted: #6b7c80;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        h2 { font-family: 'Poppins', sans-serif; }
+
+        html, body { height: 100%; }
+        body {
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .viewport {
+            flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal-dark) 45%, #0c8c6f 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 14s ease infinite;
+        }
+        .viewport.chat-active { align-items: stretch; justify-content: stretch; animation: none; background: #efeae2; }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ---------- Auth card ---------- */
+        .auth-box {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(8px);
+            padding: 42px 36px;
+            border-radius: 18px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            width: 360px;
+            text-align: center;
+            display: block;
+            animation: cardEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardEnter {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .auth-box .badge {
+            width: 56px; height: 56px;
+            margin: 0 auto 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #fff; font-weight: 700;
+            box-shadow: 0 10px 24px rgba(0,168,132,0.35);
+        }
+
+        .auth-box h2 { margin-bottom: 6px; color: var(--ink); font-weight: 700; font-size: 22px; }
+        .auth-box .subtext { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+
+        .auth-box input {
+            width: 100%; padding: 13px 14px; margin: 7px 0;
+            border: 1.5px solid #e3e8e7; border-radius: 10px;
+            font-size: 14px; outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+        .auth-box input:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(0,168,132,0.15);
+            transform: translateY(-1px);
+        }
+
+        .auth-box button {
+            width: 100%; padding: 13px; background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
+            margin-top: 14px; font-size: 15px;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,168,132,0.3);
+        }
+        .auth-box button:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .auth-box button:active { transform: translateY(0); }
+
+        .auth-box p {
+            margin-top: 18px; font-size: 13.5px; color: var(--teal-dark);
+            cursor: pointer; font-weight: 600; transition: opacity 0.15s ease;
+        }
+        .auth-box p:hover { opacity: 0.7; }
+
+        /* ---------- Chat layout ---------- */
+        .chat-layout {
+            display: none; width: 100%; height: 100%; background: #efeae2;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .sidebar {
+            width: 30%; background: #fff; border-right: 1px solid #e9e9e9;
+            display: flex; flex-direction: column; min-width: 290px;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.03);
+        }
+
+        .me-bar {
+            padding: 12px 16px; background: var(--teal-deep);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .me-info { display: flex; align-items: center; gap: 10px; }
+        .me-info span { color: #fff; font-weight: 600; font-size: 14px; }
+        #logoutBtn {
+            background: rgba(255,255,255,0.15); color: #fff; border: none;
+            padding: 7px 12px; border-radius: 7px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: background 0.15s ease;
+        }
+        #logoutBtn:hover { background: rgba(255,255,255,0.28); }
+
+        .search-area {
+            padding: 16px; border-bottom: 1px solid #f0f2f5;
+            display: flex; gap: 8px; background: var(--bg-soft);
+        }
+        .search-area input {
+            flex: 1; padding: 11px 14px; border: 1.5px solid #e3e8e7;
+            border-radius: 8px; font-size: 14px; outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .search-area input:focus { border-color: var(--teal); }
+        .search-area button {
+            padding: 11px 18px; background: var(--teal); color: white;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+        .search-area button:hover { background: var(--teal-dark); transform: translateY(-1px); }
+
+        .chat-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .chat-list::-webkit-scrollbar, .message-stream::-webkit-scrollbar { width: 6px; }
+        .chat-list::-webkit-scrollbar-thumb, .message-stream::-webkit-scrollbar-thumb {
+            background: #cfd8d6; border-radius: 8px;
+        }
+
+        .empty-state {
+            color: #9aa6a4; text-align: center; padding-top: 60px; font-size: 13.5px; line-height: 1.6;
+        }
+
+        .contact-card {
+            display: flex; align-items: center; gap: 12px; padding: 12px 12px;
+            border-radius: 10px; cursor: pointer; margin-bottom: 4px;
+            border-left: 4px solid transparent;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .contact-card:hover { background: #f7f9f8; }
+        .contact-card.active { background: var(--bg-soft); border-left-color: var(--teal); }
+
+        .avatar-dot {
+            width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 16px;
+        }
+        .avatar-dot.small { width: 34px; height: 34px; font-size: 14px; }
+
+        .contact-meta { flex: 1; min-width: 0; }
+        .contact-meta .name { font-weight: 600; font-size: 14.5px; color: var(--ink); }
+        .contact-meta .preview {
+            font-size: 12.5px; color: var(--muted); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; margin-top: 2px;
+        }
+        .contact-time { font-size: 11px; color: #a4aeac; white-space: nowrap; align-self: flex-start; margin-top: 2px; }
+
+        .main-chat-window { width: 70%; display: flex; flex-direction: column; background: #efeae2; height: 100%; }
+
+        .chat-navbar {
+            background: #fff; padding: 13px 20px; font-weight: 600;
+            border-bottom: 1px solid #e9e9e9; font-size: 15px; color: var(--ink);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .chat-navbar .navbar-text .name { font-weight: 700; font-size: 15px; }
+        .chat-navbar .navbar-text .status { font-size: 11.5px; color: var(--teal); font-weight: 500; }
+
+        .message-stream {
+            flex: 1; padding: 24px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 4px;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.025) 1px, transparent 0);
+            background-size: 18px 18px;
+        }
+
+        .bubble-row { display: flex; flex-direction: column; max-width: 60%; }
+        .bubble-row.sent { align-self: flex-end; align-items: flex-end; }
+        .bubble-row.received { align-self: flex-start; align-items: flex-start; }
+
+        .bubble {
+            padding: 9px 14px; border-radius: 12px;
+            font-size: 14.5px; line-height: 1.45; word-wrap: break-word;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+            animation: bubbleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: translateY(8px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .bubble-row.sent .bubble { background: var(--bubble-sent); border-top-right-radius: 2px; }
+        .bubble-row.received .bubble { background: var(--bubble-received); border-top-left-radius: 2px; }
+
+        .msg-time { font-size: 10.5px; color: #97a3a1; margin: 2px 4px 8px; }
+
+        .typing-bar {
+            padding: 14px 16px; background: var(--bg-soft);
+            display: flex; gap: 10px; align-items: center;
+            border-top: 1px solid #e7e7e7;
+        }
+        .typing-bar input {
+            flex: 1; padding: 13px 16px; border: none; border-radius: 22px;
+            font-size: 14.5px; outline: none;
+            box-shadow: inset 0 0 0 1.5px #e3e8e7;
+            transition: box-shadow 0.2s ease;
+        }
+        .typing-bar input:focus { box-shadow: inset 0 0 0 1.5px var(--teal); }
+        .typing-bar button {
+            padding: 12px 26px; background: var(--teal); color: white;
+            border: none; border-radius: 22px; cursor: pointer; font-weight: 600; font-size: 14.5px;
+            transition: transform 0.15s ease, background 0.2s ease;
+            box-shadow: 0 6px 16px rgba(0,168,132,0.3);
+        }
+        .typing-bar button:hover { background: var(--teal-dark); transform: translateY(-1px); }
+        .typing-bar button:active { transform: translateY(0); }
+
+        /* ---------- Footer bar (in normal flow, never overlaps content) ---------- */
+        .footer-bar {
+            flex-shrink: 0; height: 24px; display: flex; align-items: center; justify-content: center;
+            background: var(--teal-deep); color: rgba(255,255,255,0.85);
+            font-size: 10.5px; font-weight: 600; letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="viewport" id="viewport">
+        <div class="auth-box" id="authContainer">
+            <div class="badge">DC</div>
+            <h2 id="formTitle">Login to DevChat</h2>
+            <p class="subtext">Talk privately, just you two</p>
+            <input type="text" id="regName" placeholder="Enter Full Name" style="display: none;">
+            <input type="tel" id="regPhone" placeholder="Mobile Number">
+            <input type="password" id="regPassword" placeholder="Password">
+            <button id="submitFormBtn">Login</button>
+            <p id="formToggleText">Don't have an account? Sign Up</p>
+        </div>
+
+        <div class="chat-layout" id="appContainer">
+            <div class="sidebar">
+                <div class="me-bar">
+                    <div class="me-info">
+                        <div class="avatar-dot small" id="meAvatar">?</div>
+                        <span id="meName"></span>
+                    </div>
+                    <button id="logoutBtn" title="Log out">Logout</button>
+                </div>
+                <div class="search-area">
+                    <input type="tel" id="findNumber" placeholder="Search friend's mobile...">
+                    <button id="findUserBtn">Search</button>
+                </div>
+                <div class="chat-list" id="chatListContainer">
+                    <div class="empty-state" id="emptyState">No chats yet.<br>Search a friend's number to start.</div>
+                </div>
+            </div>
+
+            <div class="main-chat-window">
+                <div class="chat-navbar" id="chattingWithHeader">Choose a contact to open chat stream</div>
+                <div class="message-stream" id="msgBox"></div>
+                <div class="typing-bar">
+                    <input type="text" id="typeMsgInput" placeholder="Type a message...">
+                    <button id="sendMsgBtn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bar">created by Dev</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, update, get, child, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Your exact working Firebase keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-KJEGye08WzEZyCktEUNybtYCEuNCC3A",
+            authDomain: "dev-chats-5a5f9.firebaseapp.com",
+            projectId: "dev-chats-5a5f9",
+            storageBucket: "dev-chats-5a5f9.firebasestorage.app",
+            messagingSenderId: "336113500349",
+            appId: "1:336113500349:web:c277d40b9b97a21389b7d4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let activeUser = null;
+        let targetedChatPartner = null;
+        let activeChatRef = null;
+        let signupViewActive = false;
+        let contactsCache = {}; // phone -> { name, phone, lastMessage, lastMessageTime }
+
+        const viewport = document.getElementById("viewport");
+        const authContainer = document.getElementById("authContainer");
+        const appContainer = document.getElementById("appContainer");
+        const formTitle = document.getElementById("formTitle");
+        const regName = document.getElementById("regName");
+        const regPhone = document.getElementById("regPhone");
+        const regPassword = document.getElementById("regPassword");
+        const submitFormBtn = document.getElementById("submitFormBtn");
+        const formToggleText = document.getElementById("formToggleText");
+        const chatListContainer = document.getElementById("chatListContainer");
+
+        // Toggle Login vs Sign Up view
+        formToggleText.addEventListener("click", () => {
+            signupViewActive = !signupViewActive;
+            if(signupViewActive) {
+                formTitle.innerText = "Register Account";
+                regName.style.display = "block";
+                submitFormBtn.innerText = "Create Account";
+                formToggleText.innerText = "Already have an account? Log In";
+            } else {
+                formTitle.innerText = "Login to DevChat";
+                regName.style.display = "none";
+                submitFormBtn.innerText = "Login";
+                formToggleText.innerText = "Don't have an account? Sign Up";
+            }
+        });
+
+        // Register and Login logic
+        submitFormBtn.addEventListener("click", async () => {
+            const phone = regPhone.value.trim();
+            const password = regPassword.value.trim();
+            const name = regName.value.trim();
+
+            if (!phone || !password || (signupViewActive && !name)) {
+                alert("Please fill in all inputs.");
+                return;
+            }
+
+            const dbRef = ref(db);
+
+            if (signupViewActive) {
+                const checkUser = await get(child(dbRef, `users/${phone}`));
+                if (checkUser.exists()) {
+                    alert("This phone number is already registered.");
+                    return;
+                }
+                await set(ref(db, `users/${phone}`), { name, phone, password });
+                alert("Account created successfully! Switching to Login mode...");
+                signupViewActive = false;
+                formToggleText.click();
+            } else {
+                const userSnapshot = await get(child(dbRef, `users/${phone}`));
+                if (!userSnapshot.exists() || userSnapshot.val().password !== password) {
+                    alert("Incorrect mobile number or password entered.");
+                    return;
+                }
+                enterApp(userSnapshot.val());
+            }
+        });
+
+        // Shows the chat app for a given user and remembers the session in this browser
+        function enterApp(userRecord) {
+            activeUser = userRecord;
+            localStorage.setItem("devchat_session", JSON.stringify(userRecord));
+
+            authContainer.style.display = "none";
+            appContainer.style.display = "flex";
+            viewport.classList.add("chat-active");
+
+            document.getElementById("meName").innerText = activeUser.name;
+            document.getElementById("meAvatar").innerText = activeUser.name.charAt(0).toUpperCase();
+
+            loadSavedContacts();
+        }
+
+        // Logout clears the saved session and brings back the login screen
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem("devchat_session");
+            window.location.reload();
+        });
+
+        // On page load, if we already have a saved session, skip straight to the chat app
+        (function restoreSession() {
+            const saved = localStorage.getItem("devchat_session");
+            if (saved) {
+                try {
+                    enterApp(JSON.parse(saved));
+                } catch (e) {
+                    localStorage.removeItem("devchat_session");
+                }
+            }
+        })();
+
+        // Keep each side's contact entry up to date without wiping lastMessage/time
+        async function syncContactEntry(ownerPhone, partner) {
+            await update(ref(db, `users/${ownerPhone}/contacts/${partner.phone}`), {
+                name: partner.name,
+                phone: partner.phone
+            });
+        }
+
+        async function updateLastMessagePreview(roomMembersPhones, text, time) {
+            for (const ownerPhone of roomMembersPhones) {
+                await update(ref(db, `users/${ownerPhone}/contacts/${roomMembersPhones.find(p => p !== ownerPhone)}`), {
+                    lastMessage: text,
+                    lastMessageTime: time
+                });
+            }
+        }
+
+        // Load this user's saved contacts (realtime) so old chats reappear after re-login
+        function loadSavedContacts() {
+            const contactsRef = ref(db, `users/${activeUser.phone}/contacts`);
+            onValue(contactsRef, (snapshot) => {
+                contactsCache = snapshot.exists() ? snapshot.val() : {};
+                renderContactList();
+            });
+        }
+
+        function timeAgoLabel(ts) {
+            if (!ts) return "";
+            const diffMin = Math.floor((Date.now() - ts) / 60000);
+            if (diffMin < 1) return "now";
+            if (diffMin < 60) return `${diffMin}m`;
+            const diffHr = Math.floor(diffMin / 60);
+            if (diffHr < 24) return `${diffHr}h`;
+            return new Date(ts).toLocaleDateString([], { day: "2-digit", month: "short" });
+        }
+
+        function renderContactList() {
+            const entries = Object.values(contactsCache).sort(
+                (a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0)
+            );
+
+            if (entries.length === 0) {
+                chatListContainer.innerHTML = `<div class="empty-state">No chats yet.<br>Search a friend's number to start.</div>`;
+                return;
+            }
+
+            chatListContainer.innerHTML = "";
+            entries.forEach((contact) => {
+                const card = document.createElement("div");
+                card.className = "contact-card" + (targetedChatPartner && targetedChatPartner.phone === contact.phone ? " active" : "");
+                card.innerHTML = `
+                    <div class="avatar-dot">${contact.name.charAt(0).toUpperCase()}</div>
+                    <div class="contact-meta">
+                        <div class="name">${contact.name}</div>
+                        <div class="preview">${contact.lastMessage ? contact.lastMessage : contact.phone}</div>
+                    </div>
+                    <div class="contact-time">${timeAgoLabel(contact.lastMessageTime)}</div>
+                `;
+                card.addEventListener("click", () => openChat({ name: contact.name, phone: contact.phone }));
+                chatListContainer.appendChild(card);
+            });
+        }
+
+        // Opens (or re-opens) a 1-to-1 chat with a partner, saving the contact both ways
+        async function openChat(partner) {
+            targetedChatPartner = partner;
+
+            document.getElementById("chattingWithHeader").innerHTML = `
+                <div class="avatar-dot small">${partner.name.charAt(0).toUpperCase()}</div>
+                <div class="navbar-text">
+                    <div class="name">${partner.name}</div>
+                    <div class="status">${partner.phone}</div>
+                </div>
+            `;
+
+            await syncContactEntry(activeUser.phone, partner);
+            await syncContactEntry(partner.phone, activeUser);
+
+            renderContactList();
+            startRealtimeMessageSync();
+        }
+
+        // Search friend logic
+        document.getElementById("findUserBtn").addEventListener("click", async () => {
+            const targetPhoneInput = document.getElementById("findNumber").value.trim();
+            if(!targetPhoneInput || targetPhoneInput === activeUser.phone) {
+                alert("Please type a valid friend's number.");
+                return;
+            }
+
+            const dbRef = ref(db);
+            const targetSnapshot = await get(child(dbRef, `users/${targetPhoneInput}`));
+
+            if(targetSnapshot.exists()) {
+                await openChat(targetSnapshot.val());
+                document.getElementById("findNumber").value = "";
+            } else {
+                alert("User not found on DevChat registry.");
+            }
+        });
+
+        function getRoomStringId(p1, p2) {
+            return p1 < p2 ? `${p1}_${p2}` : `${p2}_${p1}`;
+        }
+
+        function fmtMsgTime(ts) {
+            if (!ts) return "";
+            return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+
+        // Live Realtime message sync
+        function startRealtimeMessageSync() {
+            const calculatedRoomId = getRoomStringId(activeUser.phone, targetedChatPartner.phone);
+            const msgBox = document.getElementById("msgBox");
+
+            activeChatRef = ref(db, `chats/${calculatedRoomId}/messages`);
+
+            onValue(activeChatRef, (snapshot) => {
+                msgBox.innerHTML = "";
+                if(snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        const messagePayload = childSnapshot.val();
+                        const isSent = messagePayload.sender === activeUser.phone;
+
+                        const row = document.createElement("div");
+                        row.classList.add("bubble-row", isSent ? "sent" : "received");
+
+                        const elBubble = document.createElement("div");
+                        elBubble.classList.add("bubble");
+                        elBubble.innerText = messagePayload.text;
+
+                        const elTime = document.createElement("div");
+                        elTime.classList.add("msg-time");
+                        elTime.innerText = fmtMsgTime(messagePayload.time);
+
+                        row.appendChild(elBubble);
+                        row.appendChild(elTime);
+                        msgBox.appendChild(row);
+                    });
+                    msgBox.scrollTop = msgBox.scrollHeight;
+                }
+            });
+        }
+
+        // Send message logic
+        document.getElementById("sendMsgBtn").addEventListener("click", async () => {
+            const inputField = document.getElementById("typeMsgInput");
+            const textValue = inputField.value.trim();
+            if(!textValue || !targetedChatPartner) return;
+
+            const targetRoomStringId = getRoomStringId(activeUser.phone, targetedChatPartner.phone);
+            const messagesRef = ref(db, `chats/${targetRoomStringId}/messages`);
+            const msgTime = new Date().getTime();
+
+            const newMsgRef = push(messagesRef);
+            await set(newMsgRef, {
+                sender: activeUser.phone,
+                text: textValue,
+                time: msgTime
+            });
+
+            await updateLastMessagePreview([activeUser.phone, targetedChatPartner.phone], textValue, msgTime);
+
+            inputField.value = "";
+        });
+
+        // Send on Enter key
+        document.getElementById("typeMsgInput").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") document.getElementById("sendMsgBtn").click();
+        });
+    </script>
+</body>
+</html>
