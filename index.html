@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DevChat</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -18,15 +18,12 @@
             --muted: #6b7c80;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         h2 { font-family: 'Poppins', sans-serif; }
 
         html, body { height: 100%; }
         body {
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
-        @supports (height: 100dvh) {
-            body { height: 100dvh; }
+            display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden;
         }
 
         .viewport {
@@ -51,6 +48,7 @@
             border-radius: 18px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.35);
             width: 360px;
+            max-width: 90vw;
             text-align: center;
             display: block;
             animation: cardEnter 0.55s cubic-bezier(0.16, 1, 0.3, 1);
@@ -77,7 +75,7 @@
         .auth-box input {
             width: 100%; padding: 13px 14px; margin: 7px 0;
             border: 1.5px solid #e3e8e7; border-radius: 10px;
-            font-size: 14px; outline: none;
+            font-size: 16px; outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
         }
         .auth-box input:focus {
@@ -106,8 +104,27 @@
         .chat-layout {
             display: none; width: 100%; height: 100%; background: #efeae2;
             animation: fadeIn 0.4s ease;
+            flex-direction: column;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ---------- Top-level tab bar: Chats | Memes ---------- */
+        .app-tabbar {
+            flex-shrink: 0; display: flex; background: var(--teal-deep);
+        }
+        .app-tab {
+            flex: 1; padding: 13px 10px; background: transparent; color: rgba(255,255,255,0.65);
+            border: none; font-weight: 600; font-size: 13.5px; cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: color 0.15s ease, border-color 0.15s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .app-tab.active { color: #fff; border-bottom-color: var(--teal); }
+        .app-tab:hover { color: #fff; }
+
+        .app-body {
+            flex: 1; min-height: 0; display: flex; position: relative; overflow: hidden;
+        }
 
         .sidebar {
             width: 30%; background: #fff; border-right: 1px solid #e9e9e9;
@@ -134,7 +151,7 @@
         }
         .search-area input {
             flex: 1; padding: 11px 14px; border: 1.5px solid #e3e8e7;
-            border-radius: 8px; font-size: 14px; outline: none;
+            border-radius: 8px; font-size: 16px; outline: none;
             transition: border-color 0.2s ease;
         }
         .search-area input:focus { border-color: var(--teal); }
@@ -145,9 +162,9 @@
         }
         .search-area button:hover { background: var(--teal-dark); transform: translateY(-1px); }
 
-        .chat-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .chat-list::-webkit-scrollbar, .message-stream::-webkit-scrollbar { width: 6px; }
-        .chat-list::-webkit-scrollbar-thumb, .message-stream::-webkit-scrollbar-thumb {
+        .chat-list { flex: 1; overflow-y: auto; padding: 10px; -webkit-overflow-scrolling: touch; }
+        .chat-list::-webkit-scrollbar, .message-stream::-webkit-scrollbar, .meme-grid-page::-webkit-scrollbar { width: 6px; }
+        .chat-list::-webkit-scrollbar-thumb, .message-stream::-webkit-scrollbar-thumb, .meme-grid-page::-webkit-scrollbar-thumb {
             background: #cfd8d6; border-radius: 8px;
         }
 
@@ -180,18 +197,25 @@
         }
         .contact-time { font-size: 11px; color: #a4aeac; white-space: nowrap; align-self: flex-start; margin-top: 2px; }
 
-        .main-chat-window { width: 70%; display: flex; flex-direction: column; background: #efeae2; height: 100%; }
+        .main-chat-window { width: 70%; display: flex; flex-direction: column; background: #efeae2; height: 100%; min-width: 0; }
 
         .chat-navbar {
             background: #fff; padding: 13px 20px; font-weight: 600;
             border-bottom: 1px solid #e9e9e9; font-size: 15px; color: var(--ink);
-            display: flex; align-items: center; gap: 12px;
+            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
         }
-        .chat-navbar .navbar-text .name { font-weight: 700; font-size: 15px; }
+        #chattingWithHeader { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; }
+        .chat-navbar .navbar-text { min-width: 0; }
+        .chat-navbar .navbar-text .name { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .chat-navbar .navbar-text .status { font-size: 11.5px; color: var(--teal); font-weight: 500; }
 
+        .back-btn {
+            display: none; background: none; border: none; font-size: 21px; color: var(--ink);
+            cursor: pointer; padding: 2px 6px 2px 0; flex-shrink: 0; line-height: 1;
+        }
+
         .message-stream {
-            flex: 1; padding: 24px; overflow-y: auto;
+            flex: 1; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch;
             display: flex; flex-direction: column; gap: 4px;
             background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.025) 1px, transparent 0);
             background-size: 18px 18px;
@@ -216,15 +240,18 @@
 
         .msg-time { font-size: 10.5px; color: #97a3a1; margin: 2px 4px 8px; }
 
+        .meme-bubble { padding: 6px !important; }
+        .meme-msg-img { max-width: 220px; max-height: 220px; border-radius: 8px; cursor: pointer; display: block; }
+        .meme-caption { padding: 4px 6px 2px; font-size: 12.5px; }
+
         .typing-bar {
             padding: 14px 16px; background: var(--bg-soft);
             display: flex; gap: 10px; align-items: center;
-            border-top: 1px solid #e7e7e7;
-            padding-bottom: calc(14px + env(safe-area-inset-bottom));
+            border-top: 1px solid #e7e7e7; flex-shrink: 0;
         }
         .typing-bar input {
             flex: 1; padding: 13px 16px; border: none; border-radius: 22px;
-            font-size: 14.5px; outline: none;
+            font-size: 16px; outline: none;
             box-shadow: inset 0 0 0 1.5px #e3e8e7;
             transition: box-shadow 0.2s ease;
         }
@@ -232,40 +259,117 @@
         .typing-bar button {
             padding: 12px 26px; background: var(--teal); color: white;
             border: none; border-radius: 22px; cursor: pointer; font-weight: 600; font-size: 14.5px;
-            transition: transform 0.15s ease, background 0.2s ease;
+            transition: transform 0.15s ease, background 0.2s ease; flex-shrink: 0;
             box-shadow: 0 6px 16px rgba(0,168,132,0.3);
         }
         .typing-bar button:hover { background: var(--teal-dark); transform: translateY(-1px); }
         .typing-bar button:active { transform: translateY(0); }
 
-        /* ---------- Footer bar (in normal flow, never overlaps content) ---------- */
+        /* ---------- Memes page (separate full section) ---------- */
+        .memes-page {
+            flex: 1; min-height: 0; display: none; flex-direction: column; background: #fff;
+        }
+        .memes-page-header {
+            padding: 14px 16px; border-bottom: 1px solid #eef1f0; flex-shrink: 0;
+            display: flex; gap: 10px; align-items: center; background: var(--bg-soft);
+        }
+        .memes-page-header input {
+            flex: 1; padding: 11px 14px; border: 1.5px solid #e3e8e7; border-radius: 8px;
+            font-size: 16px; outline: none; transition: border-color 0.2s ease;
+        }
+        .memes-page-header input:focus { border-color: var(--teal); }
+        .memes-page-header button {
+            padding: 11px 16px; background: var(--teal); color: #fff; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; flex-shrink: 0;
+            transition: background 0.15s ease;
+        }
+        .memes-page-header button:hover { background: var(--teal-dark); }
+
+        .meme-grid-page {
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px;
+            align-content: start;
+        }
+        .meme-card {
+            position: relative; border-radius: 12px; overflow: hidden; border: 1.5px solid #eef1f0;
+            background: var(--bg-soft); transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+        }
+        .meme-card:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.12); transform: translateY(-2px); border-color: var(--teal); }
+        .meme-card img { width: 100%; height: 130px; object-fit: cover; display: block; background: #e9ecec; }
+        .meme-card .meme-name {
+            font-size: 12px; padding: 6px 8px; color: var(--ink); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .meme-card .meme-send-btn {
+            position: absolute; top: 8px; right: 8px; background: rgba(7,71,58,0.85); color: #fff;
+            border: none; border-radius: 14px; padding: 6px 12px; font-size: 11.5px; font-weight: 600;
+            cursor: pointer; transition: background 0.15s ease;
+        }
+        .meme-card .meme-send-btn:hover { background: var(--teal); }
+
+        .meme-loading, .meme-empty {
+            grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 40px 10px; font-size: 13.5px; line-height: 1.6;
+        }
+
+        /* ---------- Contact picker overlay (used to send a meme) ---------- */
+        .picker-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(7,71,58,0.55);
+            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+            backdrop-filter: blur(2px);
+        }
+        .picker-modal {
+            background: #fff; border-radius: 16px; width: 100%; max-width: 380px;
+            max-height: 75vh; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+            animation: cardEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .picker-modal-header {
+            display: flex; align-items: center; gap: 10px; padding: 14px 18px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .picker-modal-header img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+        .picker-modal-header h3 { font-family: 'Poppins', sans-serif; font-size: 14.5px; color: var(--ink); margin-bottom: 2px; }
+        .picker-modal-header .picker-subtext { font-size: 11.5px; color: var(--muted); }
+        #closePickerBtn {
+            background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer;
+            color: var(--muted); margin-left: auto; flex-shrink: 0; align-self: flex-start;
+        }
+        #closePickerBtn:hover { color: var(--ink); }
+        .picker-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .picker-empty { text-align: center; color: var(--muted); padding: 30px 14px; font-size: 13px; line-height: 1.6; }
+
+        /* ---------- Footer bar ---------- */
         .footer-bar {
             flex-shrink: 0; height: 24px; display: flex; align-items: center; justify-content: center;
             background: var(--teal-deep); color: rgba(255,255,255,0.85);
             font-size: 10.5px; font-weight: 600; letter-spacing: 0.5px;
         }
 
-        .back-btn {
-            display: none; background: none; border: none; font-size: 21px;
-            color: var(--ink); cursor: pointer; padding: 2px 10px 2px 0;
-            line-height: 1; flex-shrink: 0;
-        }
-
-        /* ---------- Mobile: WhatsApp-style single-pane navigation ---------- */
+        /* ===================== MOBILE LAYOUT ===================== */
         @media (max-width: 768px) {
-            .auth-box { width: 90vw; max-width: 360px; padding: 36px 24px; }
+            .auth-box { padding: 32px 24px; width: 92vw; }
 
-            .sidebar { width: 100%; min-width: 0; }
-            .main-chat-window { width: 100%; display: none; }
-
-            /* Show chat pane, hide list, once a conversation is opened */
-            #appContainer.chat-open .sidebar { display: none; }
-            #appContainer.chat-open .main-chat-window { display: flex; }
-
+            .app-body { position: relative; }
+            .sidebar { width: 100%; min-width: 0; display: flex; }
+            .main-chat-window {
+                width: 100%; position: absolute; inset: 0; display: none;
+            }
+            .app-body.show-chat .sidebar { display: none; }
+            .app-body.show-chat .main-chat-window { display: flex; }
             .back-btn { display: inline-flex; align-items: center; }
 
-            .bubble-row { max-width: 78%; }
-            .typing-bar input { font-size: 16px; } /* prevents iOS auto-zoom on focus */
+            .bubble-row { max-width: 82%; }
+
+            .app-tab { font-size: 12px; padding: 11px 6px; }
+
+            .meme-grid-page { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
+            .meme-card img { height: 110px; }
+            .meme-card .meme-send-btn { padding: 5px 9px; font-size: 10.5px; }
+
+            .typing-bar { padding: 10px 12px; }
+            .typing-bar button { padding: 12px 18px; }
+
+            .footer-bar { display: none; }
         }
     </style>
 </head>
@@ -284,34 +388,65 @@
         </div>
 
         <div class="chat-layout" id="appContainer">
-            <div class="sidebar">
-                <div class="me-bar">
-                    <div class="me-info">
-                        <div class="avatar-dot small" id="meAvatar">?</div>
-                        <span id="meName"></span>
+            <div class="app-tabbar">
+                <button class="app-tab active" id="tabChatsBtn">💬 Chats</button>
+                <button class="app-tab" id="tabMemesBtn">😂 Memes</button>
+            </div>
+
+            <div class="app-body" id="appBody">
+                <div class="sidebar">
+                    <div class="me-bar">
+                        <div class="me-info">
+                            <div class="avatar-dot small" id="meAvatar">?</div>
+                            <span id="meName"></span>
+                        </div>
+                        <button id="logoutBtn" title="Log out">Logout</button>
                     </div>
-                    <button id="logoutBtn" title="Log out">Logout</button>
+                    <div class="search-area">
+                        <input type="tel" id="findNumber" placeholder="Search friend's mobile...">
+                        <button id="findUserBtn">Search</button>
+                    </div>
+                    <div class="chat-list" id="chatListContainer">
+                        <div class="empty-state" id="emptyState">No chats yet.<br>Search a friend's number to start.</div>
+                    </div>
                 </div>
-                <div class="search-area">
-                    <input type="tel" id="findNumber" placeholder="Search friend's mobile...">
-                    <button id="findUserBtn">Search</button>
-                </div>
-                <div class="chat-list" id="chatListContainer">
-                    <div class="empty-state" id="emptyState">No chats yet.<br>Search a friend's number to start.</div>
+
+                <div class="main-chat-window">
+                    <div class="chat-navbar">
+                        <button class="back-btn" id="backToListBtn" title="Back">&#8592;</button>
+                        <div id="chattingWithHeader">Choose a contact to open chat stream</div>
+                    </div>
+                    <div class="message-stream" id="msgBox"></div>
+                    <div class="typing-bar">
+                        <input type="text" id="typeMsgInput" placeholder="Type a message...">
+                        <button id="sendMsgBtn">Send</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="main-chat-window">
-                <div class="chat-navbar">
-                    <button class="back-btn" id="backToListBtn" aria-label="Back to chat list">←</button>
-                    <div id="chattingWithHeader" style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">Choose a contact to open chat stream</div>
+            <div class="memes-page" id="memesPage">
+                <div class="memes-page-header">
+                    <input type="text" id="memeSearchInput" placeholder="Search memes by name...">
+                    <button id="refreshMemesBtn" title="Reload memes">⟳ Reload</button>
                 </div>
-                <div class="message-stream" id="msgBox"></div>
-                <div class="typing-bar">
-                    <input type="text" id="typeMsgInput" placeholder="Type a message...">
-                    <button id="sendMsgBtn">Send</button>
+                <div class="meme-grid-page" id="memeGrid">
+                    <div class="meme-loading">Loading memes...</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="picker-overlay" id="pickerOverlay">
+        <div class="picker-modal">
+            <div class="picker-modal-header">
+                <img id="pickerMemeThumb" src="" alt="meme">
+                <div>
+                    <h3>Send this meme to</h3>
+                    <div class="picker-subtext">Choose from your chats</div>
+                </div>
+                <button id="closePickerBtn">&times;</button>
+            </div>
+            <div class="picker-list" id="pickerList"></div>
         </div>
     </div>
 
@@ -350,6 +485,8 @@
         const submitFormBtn = document.getElementById("submitFormBtn");
         const formToggleText = document.getElementById("formToggleText");
         const chatListContainer = document.getElementById("chatListContainer");
+        const appBody = document.getElementById("appBody");
+        const backToListBtn = document.getElementById("backToListBtn");
 
         // Toggle Login vs Sign Up view
         formToggleText.addEventListener("click", () => {
@@ -419,11 +556,6 @@
         document.getElementById("logoutBtn").addEventListener("click", () => {
             localStorage.removeItem("devchat_session");
             window.location.reload();
-        });
-
-        // Mobile: back arrow returns from the open chat to the contact list
-        document.getElementById("backToListBtn").addEventListener("click", () => {
-            appContainer.classList.remove("chat-open");
         });
 
         // On page load, if we already have a saved session, skip straight to the chat app
@@ -504,7 +636,6 @@
         // Opens (or re-opens) a 1-to-1 chat with a partner, saving the contact both ways
         async function openChat(partner) {
             targetedChatPartner = partner;
-            appContainer.classList.add("chat-open");
 
             document.getElementById("chattingWithHeader").innerHTML = `
                 <div class="avatar-dot small">${partner.name.charAt(0).toUpperCase()}</div>
@@ -519,7 +650,15 @@
 
             renderContactList();
             startRealtimeMessageSync();
+
+            // On mobile, slide from the contact list into the open chat
+            appBody.classList.add("show-chat");
         }
+
+        // Mobile back button: return from the open chat to the contact list
+        backToListBtn.addEventListener("click", () => {
+            appBody.classList.remove("show-chat");
+        });
 
         // Search friend logic
         document.getElementById("findUserBtn").addEventListener("click", async () => {
@@ -568,7 +707,25 @@
 
                         const elBubble = document.createElement("div");
                         elBubble.classList.add("bubble");
-                        elBubble.innerText = messagePayload.text;
+
+                        if (messagePayload.type === "image" && messagePayload.url) {
+                            elBubble.classList.add("meme-bubble");
+                            const img = document.createElement("img");
+                            img.src = messagePayload.url;
+                            img.alt = messagePayload.text || "meme";
+                            img.className = "meme-msg-img";
+                            img.loading = "lazy";
+                            img.addEventListener("click", () => window.open(messagePayload.url, "_blank"));
+                            elBubble.appendChild(img);
+                            if (messagePayload.text) {
+                                const cap = document.createElement("div");
+                                cap.className = "meme-caption";
+                                cap.innerText = messagePayload.text;
+                                elBubble.appendChild(cap);
+                            }
+                        } else {
+                            elBubble.innerText = messagePayload.text;
+                        }
 
                         const elTime = document.createElement("div");
                         elTime.classList.add("msg-time");
@@ -609,6 +766,343 @@
         document.getElementById("typeMsgInput").addEventListener("keydown", (e) => {
             if (e.key === "Enter") document.getElementById("sendMsgBtn").click();
         });
+
+        // ================= MEMES SECTION (separate tab, loaded from Google Sheet) =================
+
+        // Primary source: a Google Apps Script Web App the user deployed on top of their
+        // sheet. This is far more reliable than fetching docs.google.com directly, because
+        // Apps Script Web Apps send proper CORS headers for GET requests by default.
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis4pxU6ZEX37RzR_tIqAa9mo-n-PkYCh3rYePcLxoRBopyOMBn5AaQsNbp9xPCJllmQ/exec";
+
+        const PUBLISH_ID = "2PACX-1vTyUFaN6oqkC5krkUBTgab7z1dJkEKt88E1ftB1lse3lpcsXSBmppy0e6ykkFgqQRJAKeAZe9KiBFfB";
+        const PRIMARY_CSV_URL = `https://docs.google.com/spreadsheets/d/e/${PUBLISH_ID}/pub?gid=0&single=true&output=csv`;
+
+        // A few URL variants are tried in order. Google's published-CSV endpoint
+        // very often blocks a direct cross-origin fetch() with no CORS headers
+        // ("Failed to fetch") — so after the direct attempts, the same URL is
+        // retried through a couple of public CORS proxies that add the right headers.
+        // Each attempt is {url, json, jsonField} — json:true means the proxy wraps the
+        // real response inside a JSON field (more reliable than some "raw" proxy modes).
+        const MEME_FETCH_ATTEMPTS = [
+            { url: PRIMARY_CSV_URL, json: false },
+            { url: `https://docs.google.com/spreadsheets/d/e/${PUBLISH_ID}/pub?gid=0&single=true&output=csv`, json: false },
+            { url: `https://docs.google.com/spreadsheets/d/e/${PUBLISH_ID}/pub?output=csv`, json: false },
+            { url: `https://api.allorigins.win/get?url=${encodeURIComponent(PRIMARY_CSV_URL)}`, json: true, jsonField: "contents" },
+            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(PRIMARY_CSV_URL)}`, json: false },
+            { url: `https://corsproxy.io/?url=${encodeURIComponent(PRIMARY_CSV_URL)}`, json: false },
+            { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(PRIMARY_CSV_URL)}`, json: false }
+        ];
+
+        let memesCache = [];
+        let memesLoaded = false;
+        let currentTab = "chats";
+
+        const tabChatsBtn = document.getElementById("tabChatsBtn");
+        const tabMemesBtn = document.getElementById("tabMemesBtn");
+        const memesPage = document.getElementById("memesPage");
+        const memeGrid = document.getElementById("memeGrid");
+        const memeSearchInput = document.getElementById("memeSearchInput");
+        const refreshMemesBtn = document.getElementById("refreshMemesBtn");
+
+        const pickerOverlay = document.getElementById("pickerOverlay");
+        const pickerList = document.getElementById("pickerList");
+        const pickerMemeThumb = document.getElementById("pickerMemeThumb");
+        const closePickerBtn = document.getElementById("closePickerBtn");
+        let pickerActiveMeme = null;
+
+        // ---- Tab switching ----
+        tabChatsBtn.addEventListener("click", () => switchTab("chats"));
+        tabMemesBtn.addEventListener("click", () => switchTab("memes"));
+
+        function switchTab(tab) {
+            currentTab = tab;
+            if (tab === "chats") {
+                tabChatsBtn.classList.add("active");
+                tabMemesBtn.classList.remove("active");
+                appBody.style.display = "flex";
+                memesPage.style.display = "none";
+            } else {
+                tabMemesBtn.classList.add("active");
+                tabChatsBtn.classList.remove("active");
+                appBody.style.display = "none";
+                memesPage.style.display = "flex";
+                if (!memesLoaded) fetchMemesFromSheet();
+            }
+        }
+
+        // ---- Tiny CSV parser (handles quoted fields with commas/newlines) ----
+        function parseCSV(csvText) {
+            const rows = [];
+            let row = [], field = "", inQuotes = false;
+            for (let i = 0; i < csvText.length; i++) {
+                const c = csvText[i], next = csvText[i + 1];
+                if (inQuotes) {
+                    if (c === '"' && next === '"') { field += '"'; i++; }
+                    else if (c === '"') { inQuotes = false; }
+                    else field += c;
+                } else {
+                    if (c === '"') inQuotes = true;
+                    else if (c === ",") { row.push(field); field = ""; }
+                    else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+                    else if (c === "\r") { /* skip */ }
+                    else field += c;
+                }
+            }
+            if (field.length || row.length) { row.push(field); rows.push(row); }
+            return rows.filter(r => r.some(cell => cell.trim() !== ""));
+        }
+
+        function buildMemesFromRows(rows) {
+            if (rows.length < 2) return [];
+            const header = rows[0].map(h => h.trim().toLowerCase());
+            let urlColIdx = header.findIndex(h => h.includes("link") || h.includes("url") || h.includes("img"));
+            // Search for a name/caption column, but skip the column already used as the URL
+            // (a header like "memeUrl" would otherwise wrongly match "meme" here too).
+            let nameColIdx = header.findIndex((h, i) => i !== urlColIdx && (h.includes("name") || h.includes("title") || h.includes("caption")));
+
+            return rows.slice(1).map((r, idx) => {
+                let url = urlColIdx >= 0 ? (r[urlColIdx] || "") : "";
+                if (!url.trim().toLowerCase().startsWith("http")) {
+                    url = r.find(cell => cell.trim().toLowerCase().startsWith("http")) || "";
+                }
+                let name = nameColIdx >= 0 ? (r[nameColIdx] || "") : "";
+                if (!name.trim()) name = `Meme ${idx + 1}`;
+                return { name: name.trim(), url: url.trim() };
+            }).filter(m => m.url);
+        }
+
+        // Builds the memes list from the Apps Script JSON response,
+        // e.g. [{ memeUrl: "https://...", caption: "good good", category: "" }, ...]
+        function buildMemesFromJsonArray(arr) {
+            if (!Array.isArray(arr)) return [];
+            return arr.map((row, idx) => {
+                const keys = Object.keys(row);
+                const urlKey = keys.find(k => /url|link|img/i.test(k));
+                const nameKey = keys.find(k => /caption|name|title/i.test(k));
+
+                let url = urlKey ? String(row[urlKey] || "").trim() : "";
+                if (!url.toLowerCase().startsWith("http")) {
+                    const fallback = Object.values(row).find(v => typeof v === "string" && v.trim().toLowerCase().startsWith("http"));
+                    url = fallback ? fallback.trim() : "";
+                }
+
+                let name = nameKey ? String(row[nameKey] || "").trim() : "";
+                if (!name) name = `Meme ${idx + 1}`;
+
+                return { name, url };
+            }).filter(m => m.url);
+        }
+
+        // Tries the Apps Script endpoint first (reliable CORS), then falls back
+        // to the CSV publish link variants / public CORS proxies if needed.
+        async function fetchMemesFromSheet() {
+            memeGrid.innerHTML = `<div class="meme-loading">Loading memes...</div>`;
+            let loadedMemes = [];
+            let lastError = null;
+            let sawNotPublishedAsCsv = false;
+            const allErrors = [];
+
+            // 1) Primary: your own Apps Script Web App
+            if (APPS_SCRIPT_URL) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 12000);
+                    const res = await fetch(APPS_SCRIPT_URL, { cache: "no-store", signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        loadedMemes = buildMemesFromJsonArray(data);
+                        if (loadedMemes.length === 0) {
+                            lastError = "Apps Script returned no usable rows";
+                            allErrors.push(lastError);
+                        }
+                    } else {
+                        lastError = `Apps Script HTTP ${res.status}`;
+                        allErrors.push(lastError);
+                    }
+                } catch (e) {
+                    lastError = "Apps Script: " + (e.name === "AbortError" ? "Timed out" : (e.message || String(e)));
+                    allErrors.push(lastError);
+                    console.error("Apps Script meme fetch failed:", e);
+                }
+            }
+
+            // 2) Fallback: CSV publish link + public CORS proxies
+            if (loadedMemes.length === 0) {
+                for (const attempt of MEME_FETCH_ATTEMPTS) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 12000);
+                    const res = await fetch(attempt.url, { cache: "no-store", signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) { lastError = `HTTP ${res.status} (${attempt.url})`; allErrors.push(lastError); continue; }
+
+                    let csvText;
+                    if (attempt.json) {
+                        const data = await res.json();
+                        csvText = data[attempt.jsonField] || "";
+                    } else {
+                        csvText = await res.text();
+                    }
+
+                    // If Google didn't actually have a CSV publish for this sheet, it
+                    // (or the proxy relaying its error) returns an HTML page instead of CSV.
+                    const trimmed = csvText.trim();
+                    if (trimmed.startsWith("<") || trimmed.toLowerCase().includes("<!doctype html")) {
+                        sawNotPublishedAsCsv = true;
+                        lastError = `Got HTML instead of CSV (${attempt.url})`;
+                        allErrors.push(lastError);
+                        continue;
+                    }
+                    if (!trimmed) { lastError = `Empty response (${attempt.url})`; allErrors.push(lastError); continue; }
+
+                    const rows = parseCSV(csvText);
+                    const memes = buildMemesFromRows(rows);
+                    if (memes.length > 0) { loadedMemes = memes; break; }
+                    lastError = `No rows parsed from ${attempt.url}`;
+                    allErrors.push(lastError);
+                } catch (e) {
+                    lastError = (e.name === "AbortError" ? "Timed out" : (e.message || String(e))) + ` (${attempt.url})`;
+                    allErrors.push(lastError);
+                    console.error("Meme fetch attempt failed:", attempt.url, e);
+                }
+                }
+            }
+
+            if (loadedMemes.length === 0) {
+                console.error("All meme fetch attempts failed:", allErrors);
+            }
+
+            memesCache = loadedMemes;
+            memesLoaded = true;
+
+            if (memesCache.length === 0) {
+                if (sawNotPublishedAsCsv) {
+                    memeGrid.innerHTML = `<div class="meme-empty">
+                        Sheet CSV format me publish nahi hai.<br><br>
+                        Google Sheet kholo → <b>File &gt; Share &gt; Publish to web</b> → dropdown me apni sheet (Sheet1) select karo →
+                        format ko "Web page" se badal kar <b>"Comma-separated values (.csv)"</b> karo → <b>Publish</b> dabao.<br><br>
+                        Fir yahan "Try Again" dabao.<br>
+                        <button onclick="document.getElementById('refreshMemesBtn').click()" style="margin-top:10px;padding:8px 16px;background:#00a884;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Try Again</button>
+                    </div>`;
+                    return;
+                }
+                memeGrid.innerHTML = `<div class="meme-empty">
+                    Memes load nahi ho paaye.${lastError ? ` (${lastError})` : ""}<br>
+                    Apps Script URL aur sheet permissions ek baar check kar lo.<br>
+                    <button onclick="document.getElementById('refreshMemesBtn').click()" style="margin-top:10px;padding:8px 16px;background:#00a884;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Try Again</button>
+                </div>`;
+                return;
+            }
+
+            renderMemeGrid(memeSearchInput.value.trim());
+        }
+
+        refreshMemesBtn.addEventListener("click", () => {
+            memesLoaded = false;
+            fetchMemesFromSheet();
+        });
+
+        function renderMemeGrid(filterText = "") {
+            if (!memesLoaded) {
+                memeGrid.innerHTML = `<div class="meme-loading">Loading memes...</div>`;
+                return;
+            }
+
+            const filtered = filterText
+                ? memesCache.filter(m => m.name.toLowerCase().includes(filterText.toLowerCase()))
+                : memesCache;
+
+            if (filtered.length === 0) {
+                memeGrid.innerHTML = `<div class="meme-empty">No memes found.</div>`;
+                return;
+            }
+
+            memeGrid.innerHTML = "";
+            filtered.forEach(meme => {
+                const card = document.createElement("div");
+                card.className = "meme-card";
+                card.innerHTML = `
+                    <img src="${meme.url}" alt="${meme.name}" loading="lazy">
+                    <div class="meme-name">${meme.name}</div>
+                    <button class="meme-send-btn">Send</button>
+                `;
+                card.querySelector(".meme-send-btn").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openContactPicker(meme);
+                });
+                card.querySelector("img").addEventListener("click", () => window.open(meme.url, "_blank"));
+                memeGrid.appendChild(card);
+            });
+        }
+
+        memeSearchInput.addEventListener("input", () => renderMemeGrid(memeSearchInput.value.trim()));
+
+        // ---- Contact picker: choose who to send the meme to (no number search needed) ----
+        function openContactPicker(meme) {
+            pickerActiveMeme = meme;
+            pickerMemeThumb.src = meme.url;
+
+            const entries = Object.values(contactsCache).sort(
+                (a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0)
+            );
+
+            if (entries.length === 0) {
+                pickerList.innerHTML = `<div class="picker-empty">Abhi koi chat nahi hai.<br>Pehle "Chats" tab me kisi se baat shuru karo, fir yahan se memes bhej sakoge.</div>`;
+            } else {
+                pickerList.innerHTML = "";
+                entries.forEach((contact) => {
+                    const card = document.createElement("div");
+                    card.className = "contact-card";
+                    card.innerHTML = `
+                        <div class="avatar-dot">${contact.name.charAt(0).toUpperCase()}</div>
+                        <div class="contact-meta">
+                            <div class="name">${contact.name}</div>
+                            <div class="preview">${contact.phone}</div>
+                        </div>
+                    `;
+                    card.addEventListener("click", () => sendMemeTo(contact, pickerActiveMeme));
+                    pickerList.appendChild(card);
+                });
+            }
+
+            pickerOverlay.style.display = "flex";
+        }
+
+        closePickerBtn.addEventListener("click", closeContactPicker);
+        pickerOverlay.addEventListener("click", (e) => {
+            if (e.target === pickerOverlay) closeContactPicker();
+        });
+        function closeContactPicker() {
+            pickerOverlay.style.display = "none";
+            pickerActiveMeme = null;
+        }
+
+        // Sends the chosen meme straight into that contact's chat room
+        async function sendMemeTo(partner, meme) {
+            if (!meme) return;
+
+            const targetRoomStringId = getRoomStringId(activeUser.phone, partner.phone);
+            const messagesRef = ref(db, `chats/${targetRoomStringId}/messages`);
+            const msgTime = new Date().getTime();
+
+            const newMsgRef = push(messagesRef);
+            await set(newMsgRef, {
+                sender: activeUser.phone,
+                type: "image",
+                url: meme.url,
+                text: meme.name || "",
+                time: msgTime
+            });
+
+            await updateLastMessagePreview([activeUser.phone, partner.phone], "📷 Meme", msgTime);
+
+            closeContactPicker();
+            switchTab("chats");
+            openChat({ name: partner.name, phone: partner.phone });
+        }
     </script>
 </body>
 </html>
